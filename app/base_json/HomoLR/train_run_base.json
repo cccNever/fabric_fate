@@ -1,0 +1,85 @@
+{
+    "dsl_version": 2,
+    "initiator": {
+        "role": "guest",
+        "party_id": 9999
+    },
+    "role": {
+        "guest": [
+            9999
+        ],
+        "host": [
+            10000
+        ],
+        "arbiter": [
+            9999
+        ]
+    },
+    "job_parameters": {
+        "common": {
+            "job_type": "train",
+            "backend": 0,
+            "work_mode": 1
+        }
+    },
+    "component_parameters": {
+        "role": {
+            "guest": {
+                "0": {
+                   "dataio_1": {
+                        "with_label": true,
+                        "label_type":"float",
+                        "output_format": "dense"
+                    },
+                    "dataio_0": {
+                        "with_label": true,
+                        "label_type":"float",
+                        "output_format": "dense"
+                    },
+                    "reader_0": {
+                        "table": {
+                            "name": "default_credit_homo_guest",
+                            "namespace": "experiments"
+                        }
+                    },
+                    "reader_1": {
+                        "table": {
+                            "name": "default_credit_homo_test",
+                            "namespace": "experiments"
+                        }
+                    }
+                }
+            },
+            "host": {}
+        },
+        "common": {
+            "homo_lr_0": {
+                "penalty": "L2",
+                "tol": 1e-05,
+                "alpha": 0.01,
+                "optimizer": "sgd",
+                "batch_size": -1,
+                "learning_rate": 0.15,
+                "init_param": {
+                    "init_method": "zeros"
+                },
+                "max_iter": 1,
+                "early_stop": "diff",
+                "encrypt_param": {
+                    "method": null
+                },
+                "cv_param": {
+                    "n_splits": 4,
+                    "shuffle": true,
+                    "random_seed": 33,
+                    "need_cv": false
+                },
+                "decay": 1,
+                "decay_sqrt": true
+            },
+            "evaluation_0": {
+                "eval_type": "binary"
+            }
+        }
+    }
+}

@@ -1,0 +1,7 @@
+{
+    "method": "min_max_scale",
+    "mode": "cap",
+    "feat_upper": 1,
+    "feat_lower": 0,
+    "scale_names": []
+}

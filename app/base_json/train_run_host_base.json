@@ -1,0 +1,24 @@
+{
+    "dataio_1": {
+        "with_label": true,
+        "label_type":"float",
+        "output_format": "dense"
+    },
+    "dataio_0": {
+        "with_label": true,
+        "label_type":"float",
+        "output_format": "dense"
+    },
+    "reader_0": {
+        "table": {
+            "name": "default_credit_homo_host_2",
+            "namespace": "experiments"
+        }
+    },
+    "reader_1": {
+        "table": {
+            "name": "default_credit_homo_test",
+            "namespace": "experiments"
+        }
+    }
+}

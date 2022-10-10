@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.8 (src-NxDXWgcJ)" project-jdk-type="Python SDK" />
+  <component name="UnattendedHostPersistenceState">
+    <option name="openedFilesInfos">
+      <list>
+        <OpenedFileInfo>
+          <option name="caretOffset" value="1452" />
+          <option name="fileUrl" value="file://$PROJECT_DIR$/app/utils/modelParam/base.py" />
+        </OpenedFileInfo>
+        <OpenedFileInfo>
+          <option name="caretOffset" value="0" />
+          <option name="fileUrl" value="file://$PROJECT_DIR$/app/utils/dsl/base.py" />
+        </OpenedFileInfo>
+        <OpenedFileInfo>
+          <option name="caretOffset" value="0" />
+          <option name="fileUrl" value="file://$PROJECT_DIR$/app/base_json/dsl_base.json" />
+        </OpenedFileInfo>
+        <OpenedFileInfo>
+          <option name="caretOffset" value="15" />
+          <option name="fileUrl" value="file://$PROJECT_DIR$/app/utils/conf/base.py" />
+        </OpenedFileInfo>
+        <OpenedFileInfo>
+          <option name="caretOffset" value="1079" />
+          <option name="fileUrl" value="file://$PROJECT_DIR$/app/config.py" />
+        </OpenedFileInfo>
+        <OpenedFileInfo>
+          <option name="caretOffset" value="290" />
+          <option name="fileUrl" value="file://$PROJECT_DIR$/app/web/test.py" />
+        </OpenedFileInfo>
+        <OpenedFileInfo>
+          <option name="caretOffset" value="14985" />
+          <option name="fileUrl" value="file://$PROJECT_DIR$/app/web/task.py" />
+        </OpenedFileInfo>
+        <OpenedFileInfo>
+          <option name="caretOffset" value="1328" />
+          <option name="fileUrl" value="file://$PROJECT_DIR$/app/models/task.py" />
+        </OpenedFileInfo>
+        <OpenedFileInfo>
+          <option name="caretOffset" value="2515" />
+          <option name="fileUrl" value="file://$PROJECT_DIR$/app/viewmodels/task_res.py" />
+        </OpenedFileInfo>
+        <OpenedFileInfo>
+          <option name="caretOffset" value="2161" />
+          <option name="fileUrl" value="file://$PROJECT_DIR$/app/forms/task.py" />
+        </OpenedFileInfo>
+      </list>
+    </option>
+  </component>
+</project>

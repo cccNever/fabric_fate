@@ -1,0 +1,52 @@
+【request before】
+139735133574912
+Exception on /api/task/async_result [GET]
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.8/site-packages/redis/connection.py", line 614, in connect
+    sock = self.retry.call_with_retry(
+  File "/usr/local/lib/python3.8/site-packages/redis/retry.py", line 46, in call_with_retry
+    return do()
+  File "/usr/local/lib/python3.8/site-packages/redis/connection.py", line 615, in <lambda>
+    lambda: self._connect(), lambda error: self.disconnect(error)
+  File "/usr/local/lib/python3.8/site-packages/redis/connection.py", line 648, in _connect
+    for res in socket.getaddrinfo(
+  File "/usr/local/lib/python3.8/socket.py", line 918, in getaddrinfo
+    for res in _socket.getaddrinfo(host, port, family, type, proto, flags):
+socket.gaierror: [Errno -3] Temporary failure in name resolution
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.8/site-packages/flask/app.py", line 1523, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "/usr/local/lib/python3.8/site-packages/flask/app.py", line 1509, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**req.view_args)
+  File "/usr/local/lib/python3.8/site-packages/flask_login/utils.py", line 277, in decorated_view
+    return current_app.ensure_sync(func)(*args, **kwargs)
+  File "/home/web/app/web/task.py", line 411, in get_result
+    return success_response(str(redis_client.get(id), 'utf-8'))
+  File "/usr/local/lib/python3.8/site-packages/redis/commands/core.py", line 1681, in get
+    return self.execute_command("GET", name)
+  File "/usr/local/lib/python3.8/site-packages/redis/client.py", line 1224, in execute_command
+    conn = self.connection or pool.get_connection(command_name, **options)
+  File "/usr/local/lib/python3.8/site-packages/redis/connection.py", line 1392, in get_connection
+    connection.connect()
+  File "/usr/local/lib/python3.8/site-packages/redis/connection.py", line 620, in connect
+    raise ConnectionError(self._error_message(e))
+redis.exceptions.ConnectionError: Error -3 connecting to http:6379. Temporary failure in name resolution.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.8/site-packages/flask/app.py", line 2077, in wsgi_app
+    response = self.full_dispatch_request()
+  File "/usr/local/lib/python3.8/site-packages/flask/app.py", line 1525, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "/usr/local/lib/python3.8/site-packages/flask_cors/extension.py", line 165, in wrapped_function
+    return cors_after_request(app.make_response(f(*args, **kwargs)))
+  File "/usr/local/lib/python3.8/site-packages/flask/app.py", line 1391, in handle_user_exception
+    return self.ensure_sync(handler)(e)
+  File "/home/web/app/web/errors.py", line 16, in framework_error
+    return make_error_res(501, e.get_description())
+AttributeError: 'ConnectionError' object has no attribute 'get_description'
+【request after】

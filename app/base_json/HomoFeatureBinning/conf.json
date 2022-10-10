@@ -1,0 +1,4 @@
+{
+    "method": "recursive_query",
+    "sample_bins": 100
+}

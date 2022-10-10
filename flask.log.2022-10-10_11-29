@@ -1,0 +1,20 @@
+Scheduler started
+Looking for jobs to run
+No jobs; waiting until a job is added
+【request before】
+Starting new HTTP connection (1): 10.99.12.103:8010
+http://10.99.12.103:8010 "POST /queryModel HTTP/1.1" 200 None
+【--------------------------assign--------------------------】
+assign!!!!!!!!!!!!!!!!
+{'modelName': 'homo_lr', 'modelAssigner': '9999', 'minPeers': 1, 'numberOfPeers': 100, 'timeLimit': 1209600, 'trainDataConf': '{"head": 1, "drop": 1, "partition": 5, "file": "/data/projects/fate/examples/cpjdata/assign/user__cccnever_breast_homo_guest.csv", "namespace": "experiments", "table_name": "breast_homo_guest"}', 'evaluateDataConf': '{"head": 1, "drop": 1, "partition": 5, "file": "/data/projects/fate/examples/cpjdata/assign/user__cccnever_breast_homo_test.csv", "namespace": "experiments", "table_name": "breast_homo_test"}', 'restrict': 'breast - 逻辑回归', 'modelParam': '{"maxIter":20,"batchSize":20,"learningRate":0.15,"decay":1}'}
+id--------------
+【request after】
+139663192872704
+Starting new HTTP connection (1): 10.99.12.103:8010
+Starting new HTTP connection (1): 10.99.12.103:8010
+http://10.99.12.103:8010 "POST /queryModel HTTP/1.1" 200 None
+http://10.99.12.103:8010 "POST /assign HTTP/1.1" 200 217
+【assign_res_body】:
+{"numberOfPeers":100,"timeLimit":1209600,"modelName":"homo_lr","assignDateTime":"2022-10-10T11:38:33.886177+08:00","modelID":"1665373113886","modelAssigner":"9999","state":"","ID":0,"restrict":"breast - 逻辑回归"}
+Starting new HTTP connection (1): 10.99.12.103:8010
+http://10.99.12.103:8010 "POST /queryModel HTTP/1.1" 200 None

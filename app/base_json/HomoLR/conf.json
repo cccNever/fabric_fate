@@ -1,0 +1,24 @@
+{
+    "penalty": "L2",
+    "tol": 1e-05,
+    "alpha": 0.01,
+    "optimizer": "sgd",
+    "batch_size": -1,
+    "learning_rate": 0.15,
+    "init_param": {
+        "init_method": "zeros"
+    },
+    "max_iter": 1,
+    "early_stop": "diff",
+    "encrypt_param": {
+        "method": null
+    },
+    "cv_param": {
+        "n_splits": 4,
+        "shuffle": true,
+        "random_seed": 33,
+        "need_cv": false
+    },
+    "decay": 1,
+    "decay_sqrt": true
+},

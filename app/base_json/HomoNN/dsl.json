@@ -1,0 +1,21 @@
+{
+    "module": "modelName",
+    "input": {
+        "data": {
+            "train_data": [
+                "xxx.data"
+            ],
+            "validate_data": [
+                "xxx.data"
+            ]
+        }
+    },
+    "output": {
+        "data": [
+            "data"
+        ],
+        "model": [
+            "model"
+        ]
+    }
+}

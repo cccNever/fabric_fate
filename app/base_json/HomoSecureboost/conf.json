@@ -1,0 +1,11 @@
+{
+  "task_type": "classification",
+  "objective_param": {
+    "objective": "cross_entropy"
+  },
+  "num_trees": 3,
+  "validation_freqs": 1,
+  "tree_param": {
+    "max_depth": 3
+  }
+}

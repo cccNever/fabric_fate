@@ -1,0 +1,18 @@
+{
+    "module": "modelName",
+    "input": {
+        "data": {
+            "data": [
+                "xxx.data"
+            ]
+        }
+    },
+    "output": {
+        "data": [
+            "data"
+        ],
+        "model": [
+            "model"
+        ]
+    }
+}
