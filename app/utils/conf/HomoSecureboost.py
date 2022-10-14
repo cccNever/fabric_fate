@@ -2,7 +2,7 @@ import json
 from .base import ConfBase
 
 
-class SecureBoost(ConfBase):
+class HomoSecureboost(ConfBase):
     numTrees = 2
     maxDepth = 3
     taskType = "classification"

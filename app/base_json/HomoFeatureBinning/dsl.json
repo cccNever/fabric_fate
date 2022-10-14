@@ -2,10 +2,7 @@
     "module": "modelName",
     "input": {
         "data": {
-            "train_data": [
-                "xxx.data"
-            ],
-            "validate_data": [
+            "data": [
                 "xxx.data"
             ]
         }

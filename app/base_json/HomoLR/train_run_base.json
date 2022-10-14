@@ -53,7 +53,7 @@
             "host": {}
         },
         "common": {
-            "homo_lr_0": {
+            "homolr_0": {
                 "penalty": "L2",
                 "tol": 1e-05,
                 "alpha": 0.01,

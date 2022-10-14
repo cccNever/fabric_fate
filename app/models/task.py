@@ -47,8 +47,6 @@ class BaseTask(Base):
     numberOfPeers = db.IntField(default=1)
     minPeers = db.IntField(default=0)
     taskName = db.StringField(max_length=50)
-    modelParam = db.StringField()
-    featureParam = db.StringField()
 
 
 class AllTask(BaseTask):
@@ -104,6 +102,10 @@ class Task(BaseTask):
     acceptors = db.ListField(db.EmbeddedDocumentField(
         Participant))
     assignDateTime = db.StringField(required=True)
+    modelParam = db.StringField()
+    featureParam = db.StringField()
+    labelName = db.StringField()
+    featureNames = db.ListField(db.StringField(max_length=50))
 
     def set_attrs(self, attrs):
         for key, value in attrs.items():

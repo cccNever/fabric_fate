@@ -36,6 +36,8 @@ class AssignForm(BaseForm):
     taskName = StringField('taskName', validators=[DataRequired(), Length(1, 64)])
     modelParam = StringField('modelParam', validators=[DataRequired()])
     featureParam = StringField('featureParam', validators=[DataRequired()])
+    labelName = StringField('labelName', validators=[DataRequired()], default="y")
+    featureNames = StringField('featureNames', validators=[DataRequired()])
 
 
 class TrainForm(BaseForm):

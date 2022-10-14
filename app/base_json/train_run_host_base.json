@@ -2,12 +2,14 @@
     "dataio_1": {
         "with_label": true,
         "label_type":"float",
-        "output_format": "dense"
+        "output_format": "dense",
+        "label_name": "y"
     },
     "dataio_0": {
         "with_label": true,
         "label_type":"float",
-        "output_format": "dense"
+        "output_format": "dense",
+        "label_name": "y"
     },
     "reader_0": {
         "table": {

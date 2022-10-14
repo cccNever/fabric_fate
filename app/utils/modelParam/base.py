@@ -15,17 +15,20 @@ class ConfBaseParam:
                 'guest': "9999",
                 'tableName': guest,
                 'evaluateTableName': test,
+                'labelName': 'y'
             },
             "hosts_param": [
                 {
                     'host': "10000",
                     'tableName': guest,
-                    'evaluateTableName': test
+                    'evaluateTableName': test,
+                    'labelName': 'y'
                 },
                  {
                     'host': "10001",
                     'tableName': guest,
-                    'evaluateTableName': test
+                    'evaluateTableName': test,
+                    'labelName': 'y'
                 }
             ]
             "model_param":{
@@ -36,18 +39,19 @@ class ConfBaseParam:
             "feature_param":{
                 "feature_binning": {
 
-                }，
+                },
                 ...
             }
         }
     """
-    def __init__(self, model_name, initiator, guest_param, hosts_param, model_param, feature_param):
+    def __init__(self, model_name, labelName, initiator, guest_param, hosts_param, model_param, feature_param):
         if model_name == "homo_lr":
             self.model_name = "HomoLR"
         elif model_name == "homo_nn":
             self.model_name = "HomoNN"
         elif model_name == "homo_secureboost":
             self.model_name = "HomoSecureboost"
+        self.labelName = labelName
         self.initiator = initiator
         self.guest_param = guest_param
         self.hosts_param = hosts_param
@@ -87,6 +91,8 @@ class ConfBaseParam:
                 host_list.append(host_param['host'])
                 runHostConf["reader_0"]["table"]["name"] = host_param["tableName"]
                 runHostConf["reader_1"]["table"]["name"] = host_param["evaluateTableName"]
+                runHostConf["dataio_0"]["label_name"] = host_param["labelName"]
+                runHostConf["dataio_1"]["label_name"] = host_param["labelName"]
                 host = {
                     str(idx): runHostConf
                 }
@@ -97,6 +103,10 @@ class ConfBaseParam:
                 'tableName']
             runConf["component_parameters"]["role"]["guest"]["0"]["reader_1"]["table"]["name"] = self.guest_param[
                 'evaluateTableName']
+            runConf["component_parameters"]["role"]["guest"]["0"]["dataio_0"]["label_name"] = self.guest_param[
+                'labelName']
+            runConf["component_parameters"]["role"]["guest"]["0"]["dataio_1"]["label_name"] = self.guest_param[
+                'labelName']
         self.conf = runConf
         self.__add_component_conf(self.model_name, self.model_param)
 
@@ -128,22 +138,22 @@ class ConfBaseParam:
             pre_index = self.train_component_list.index(pre_component.lower())
             next_index = pre_index + 1
             next_component = self.train_component_list[next_index]
-            if next_component == self.model_name:
-                self.dsl["components"][next_component+"_0"]["input"]["data"]["train_data"] = component_name.lower()+"_0"+".data"
+            if next_component == self.model_name.lower():
+                self.dsl["components"][next_component+"_0"]["input"]["data"]["train_data"] = [component_name.lower()+"_0"+".data"]
             else:
-                self.dsl["components"][next_component + "_0"]["input"]["data"]["data"] = component_name.lower()+"_0"+".data"
+                self.dsl["components"][next_component + "_0"]["input"]["data"]["data"] = [component_name.lower()+"_0"+".data"]
             self.train_component_list.insert(next_index, component_name.lower())
             self.dsl["components"][component_name.lower() + "_0"] = component_dsl
         elif component_type == "test":
             testDsl = TestDsl(component_name, pre_component.lower(), component_name.lower())
             component_dsl = testDsl.generate_dsl()
-            pre_index = self.test_component_list.index(pre_component.lower()+"_1")
+            pre_index = self.test_component_list.index(pre_component.lower())
             next_index = pre_index + 1
             next_component = self.test_component_list[next_index]
-            if next_component == self.model_name:
-                self.dsl["components"][next_component+"_0"]["input"]["data"]["validate_data"] = component_name.lower()+"_1"+".data"
+            if next_component == self.model_name.lower():
+                self.dsl["components"][next_component+"_0"]["input"]["data"]["validate_data"] = [component_name.lower()+"_1"+".data"]
             else:
-                self.dsl["components"][next_component + "_1"]["input"]["data"]["data"] = component_name.lower() + "_1" + ".data"
+                self.dsl["components"][next_component + "_1"]["input"]["data"]["data"] = [component_name.lower() + "_1" + ".data"]
             self.test_component_list.insert(next_index, component_name.lower())
             self.dsl["components"][component_name.lower()+"_1"] = component_dsl
 
@@ -154,22 +164,27 @@ class ConfBaseParam:
         :param component_type: train or test
         :return:
         """
-        accept_list = ["DataIo", "FeatureBinning", "Onehot", "FeatureScale"]
+        accept_list = ["DataIo", "HomoFeatureBinning", "HomoOneHotEncoder", "FeatureScale"]
         if feature not in accept_list:
             raise Forbidden("unsupported feature engineering")
         for i in range(accept_list.index(feature), -1, -1):
-            if accept_list[i].lower() in self.train_component_list or self.test_component_list:
-                pre_component = accept_list[i]
-                self.__add_component_dsl(feature, pre_component, component_type)
+            if component_type == "train":
+                if accept_list[i].lower() in self.train_component_list:
+                    pre_component = accept_list[i]
+                    self.__add_component_dsl(feature, pre_component, "train")
+                    break
+            elif component_type == "test":
+                if accept_list[i].lower() in self.test_component_list:
+                    pre_component = accept_list[i]
+                    self.__add_component_dsl(feature, pre_component, "test")
+                    break
 
     def __add_component_conf(self, component, params):
-        if component not in ConfBase.__subclasses__():
-            raise Forbidden("unsupported component")
-        conf_module = __import__('app.utils.conf')
-        # 获取子类存在的py文件
-        component_py = getattr(conf_module, component)
+        component_module = __import__("app.utils.conf"+"."+component, globals(), locals(), [component], 0)
+        # # 获取子类存在的py文件
+        # component_py = getattr(conf_module, component)
         # 获取子类
-        component_class = getattr(component_py, component)
+        component_class = getattr(component_module, component)
         component_ob = component_class(component)
         getattr(component_ob, 'set_attrs')(params)
         component_conf = getattr(component_ob, 'generate_conf')()

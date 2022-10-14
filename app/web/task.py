@@ -22,14 +22,15 @@ import time
 from app.forms.task import ParticipantForm, AssignForm, AcceptForm, TrainForm, PreProcessForm
 from app.models.task import Participant, Task, MyTask, AllTask, ModelResult
 from app.viewmodels.task_res import task_data, detail_data, assign_data
+from app.requestModels.task_request import assign_request
 from app.utils.modelParam.base import ConfBaseParam
 from app.utils.http import success_response, forward_response, post_form
-from app.utils.hardware_status import get_cpu_status, get_memory_status, get_test_speed
+from app.utils.hardware_status import get_cpu_status, get_memory_status
 from app.utils.oshelper import delete_head, is_json
 from app.utils.task import state_verification, get_server_by_partyID, save_files
 from app.libs.server_identify import get_server_ip
 from app.libs.error_code import APIError
-from app.celery_works.tasks import async_task, async_train, async_accept, async_assign
+from app.celery_works.tasks import async_task, async_train, async_accept
 from app import redis_client
 from app import scheduler
 
@@ -131,7 +132,7 @@ def getResult():
     findresult = ModelResult.objects.filter(modelID=modelID).first()
     if not findresult:  # 数据库里没存该模型结果
         '''调103:8010/queryByModelID接口获取最新一条记录'''
-        queryByModelID_api = 'http://10.99.12.{}:8010/queryByModelID'.format('103')
+        queryByModelID_api = current_app.config["LOCAL_FATE_IP"] + "queryByModelID"
         data = {"modelID": modelID}
         res = post_form(queryByModelID_api, data=data)
         res_str = res.content.decode()
@@ -162,9 +163,6 @@ def getResult():
     return success_response(data=str(result_json))
 
 
-'''模型结果下载'''
-
-
 @web.route('/api/task/resultDownload', methods=['POST', 'GET', 'OPTIONS'])
 @login_required
 def resultDownload():
@@ -173,7 +171,7 @@ def resultDownload():
     需要从前端获得:modelID
     """
     modelID = request.args.get('modelID')
-    queryByModelID_api = 'http://10.99.12.{}:8010/queryByModelID'.format('103')
+    queryByModelID_api = current_app.config["LOCAL_FATE_IP"] + "queryByModelID"
     data = {"modelID": modelID}
     res = post_form(queryByModelID_api, data=data)
     res_str = res.content.decode()
@@ -198,10 +196,7 @@ def resultDownload():
             json.dump(result_json, result_file)
             result_file.close()
 
-        return send_file(result_file_path, as_attachment=True) #成功
-
-
-'''展示所有任务'''
+        return send_file(result_file_path, as_attachment=True)  # 成功
 
 
 @web.route('/api/task/allTask', methods=['GET'])
@@ -222,9 +217,6 @@ def all_task():
             res_data.append(task_data(item))
     sort_data = sorted(res_data, key=lambda k: (k.get('assignDateTime', '')), reverse=True)
     return success_response(sort_data)
-
-
-'''展示用户相关任务'''
 
 
 @web.route('/api/task/mytask', methods=['GET'])
@@ -256,9 +248,6 @@ def my_task():
     return success_response(sort_data)
 
 
-'''查看任务详情'''
-
-
 @web.route('/api/task/detail', methods=['GET', 'POST', 'OPTIONS'])
 @login_required
 def task_detail():
@@ -268,9 +257,6 @@ def task_detail():
     # 发出查询请求
     res_data = post_form(ip_addr + 'query/' + model_id).json()
     return success_response(data=res_data['data'])
-
-
-'''发布任务'''
 
 
 @web.route('/api/task/assign', methods=['POST', 'OPTIONS'])
@@ -325,16 +311,19 @@ def assign():
             "modelName": form.modelName.data,
             "modelAssigner": current_app.config["LOCAL_PARTY_ID"],  # 改了这个
             "minPeers": form.minPeers.data,
-            "numberOfPeers": 100,
+            "numberOfPeers": 1,
             "timeLimit": form.timeLimit.data,  # 改动:变成定值了
             "trainDataConf": str(trainDataConf).replace("'", '"'),
             "evaluateDataConf": str(evaluateDataConf).replace("'", '"'),
             "restrict": form.taskName.data,
-            "modelParam": form.modelParam.data
+            "modelParam": form.modelParam.data,
+            "featureParam": form.featureParam.data,
+            "labelName": form.labelName.data,
+            "featureNames": form.featureNames.data
         }
         current_app.logger.info("assign!!!!!!!!!!!!!!!!")
         current_app.logger.info(str(data))
-        assign_api = 'http://10.99.12.{}:8010/assign'.format('103')
+        assign_api = current_app.config["LOCAL_FATE_IP"] + "assign"
         thread = Thread(target=send_async_assign, args=[current_app._get_current_object(), assign_api, data],
                         kwargs={'nickname': current_user.nickname, 'description': form.description.data})
         thread.start()
@@ -344,10 +333,8 @@ def assign():
 def send_async_assign(app, assign_api, data, **kwargs):
     id = str(threading.currentThread().ident)
     with app.app_context():
-        current_app.logger.info('id--------------')
-        current_app.logger.info(id)
         redis_client.set(id, "ASSIGNING")
-        assign_res_body = post_form(assign_api, data=data).content.decode()
+        assign_res_body = post_form(assign_api, data=assign_request(data)).content.decode()
         current_app.logger.info("【assign_res_body】:")
         current_app.logger.info(assign_res_body)
         try:
@@ -375,7 +362,10 @@ def send_async_assign(app, assign_api, data, **kwargs):
                 "description": kwargs['description'],
                 "timeLimit": jsonData['timeLimit'],
                 "state": 'ASSIGNED',
-                "modelParam": data['modelParam']
+                "modelParam": data['modelParam'],
+                "featureParam": data["featureParam"],
+                "labelName": data["labelName"],
+                "featureNames": data["featureNames"]
             }
             task = Task()
             task.set_attrs(attrs_data)
@@ -412,9 +402,6 @@ def get_result():
     return success_response(str(redis_client.get(id), 'utf-8'))
 
 
-'''接收任务'''
-
-
 @web.route('/api/task/accept', methods=['POST'])
 @login_required
 def accept():
@@ -428,7 +415,6 @@ def accept():
     form = AcceptForm()
     # current_app.logger.info(form.data)
     if form.validate_for_api():
-
         '''调用accept接口接收任务'''
 
         # 获取并存储traindata和evaluatedata文件
@@ -439,7 +425,6 @@ def accept():
         evaluate_file = form.evaluateFile.data
         save_files("accept", train_file, evaluate_file)
 
-        accept_api = 'http://10.99.12.{}:8010/accept'.format('103')
         modelTrainer = current_app.config["LOCAL_PARTY_ID"]
         base_path = current_app.config['BASE_UPLOAD_FOLDER'] + "accept/"
         trainDataConf = {
@@ -466,7 +451,7 @@ def accept():
         }
         current_app.logger.info("accept!!!!!!!!!!!!")
         current_app.logger.info(str(data))
-        accept_api = 'http://10.99.12.{}:8010/accept'.format('103')
+        accept_api = current_app.config["LOCAL_FATE_IP"] + "accept"
         thread = Thread(target=send_async_accept, args=[current_app._get_current_object(), accept_api, data],
                         kwargs={'nickname': current_user.nickname})
         thread.start()
@@ -476,8 +461,6 @@ def accept():
 def send_async_accept(app, accept_api, data, **kwargs):
     id = str(threading.currentThread().ident)
     with app.app_context():
-        current_app.logger.info('id--------------')
-        current_app.logger.info(id)
         redis_client.set(id, "ACCEPTING")
         acceptRes_str = post_form(accept_api, data=data).content.decode()
         while acceptRes_str == "Connection Failed!":
@@ -519,7 +502,6 @@ def send_async_accept(app, accept_api, data, **kwargs):
                 update_api = 'http://' + serverIP + ':88/acceptor/update'
                 update_res = post_form(update_api, data=update_data)
 
-
             '''更新本地服务器user-model表中的MyTask对象'''
 
             mytask = MyTask.objects.filter(nickName=kwargs['nickname']).first()
@@ -545,9 +527,6 @@ def send_async_accept(app, accept_api, data, **kwargs):
             #     task.delete()
             redis_client.set(id, "ERROR")
             raise APIError('接收任务失败')
-
-
-'''开始训练'''
 
 
 @web.route('/api/task/train', methods=['POST', 'OPTIONS'])
@@ -580,8 +559,8 @@ def train():
             hosts_param.append(item)
         model_param = json.loads(task.modelParam)
         feature_param = json.loads(task.featureParam)
-        # model_setting = make_project(task.modelName, initiator, guest_param, hosts_param, model_param)
-        model_setting = ConfBaseParam(task.modelName, initiator, guest_param, hosts_param, model_param, feature_param)
+        labelName = task.labelName
+        model_setting = ConfBaseParam(task.modelName, labelName, initiator, guest_param, hosts_param, model_param, feature_param)
         model_setting.generate_conf_and_dsl()
         dslConf = model_setting.dsl
         runConf = model_setting.conf
@@ -593,13 +572,12 @@ def train():
         current_app.logger.info('【runConfStr】:')
         current_app.logger.info(runConfStr)
 
-
         task = Task.objects.filter(modelID=modelID).first()
         if task:
             task.state = 'TRAINED'
             task.save()
 
-        train_api = 'http://10.99.12.{}:8010/train'.format('103')
+        train_api = current_app.config["LOCAL_FATE_IP"] + "train"
         data = {"modelID": modelID, "dslConf": dslConfStr, "runConf": runConfStr}
         current_app.logger.info(str(data))
         thread = Thread(target=send_async_train, args=[current_app._get_current_object(), train_api, data])
@@ -637,12 +615,14 @@ def send_async_train(app, train_api, data, **kwargs):
             raise APIError('训练失败')
 
 
-'''从AllTask数据库中查询某模型'''
-
-
 @web.route('/api/task/query', methods=['POST', 'GET', 'OPTIONS'])
 @login_required
 def task_query():
+    """
+    从AllTask数据库中查询某模型
+
+    :return:
+    """
     modelID = request.args.get('modelID')
     state = AllTask.objects.filter(modelID=modelID).first()
     current_app.logger.info("【/api/task/query】")
@@ -677,82 +657,11 @@ def hardware():
 @web.route('/api/status/getSpeed', methods=['POST', 'GET'])
 @login_required
 def getSpeed():
-    res_str=redis_client.get("_speed")
+    res_str = redis_client.get("_speed")
     current_app.logger.info("----------getSpeed---------")
     current_app.logger.info(res_str)
     res = json.loads(res_str)
     return success_response(data=res)
-
-
-"""--------------------暂时不用的--------------------------------"""
-
-'''Thread异步train'''
-
-
-def send_async_train_test(app, train_api, data, modelID):
-    """
-    :param app:
-    :param train_api:
-    :param data:
-    :param modelID:
-    :return:
-    """
-    with app.app_context():
-        """------------首先修改任务状态TRAINING------------------"""
-        task = Task.objects.filter(modelID=modelID).first()
-        if task:
-            task.state = 'TRAINED'
-            task.save()
-        all_task = AllTask.objects.filter(modelID=modelID).first()
-        current_app.logger.info(all_task.__dir__())
-        if all_task:
-            all_task_copy = AllTask()
-            all_task_copy.copy_attrs(all_task)
-            all_task.status = 0
-            all_task_copy.state = 'TRAINED'
-            all_task_copy.save()
-            current_app.logger.info("all_task:------------------------------------")
-            current_app.logger.info(all_task.modelID)
-        """------------发出请求--------------"""
-        trainRes = post_form(train_api, data=data)
-
-        # def _all_task_update_after(t):
-        #     time.sleep(t)
-        #     _all_task_update()
-        #
-        # thr = Thread(target=_all_task_update_after, args=[5])
-        # thr.start()
-        trainRes_str = trainRes.content.decode()
-        try:
-            json.loads(trainRes_str)
-            _all_task_update()
-            current_app.logger.info("【train的返回:】" + modelID)
-            current_app.logger.info(trainRes_str)
-            current_app.logger.info("【train的返回type:】")
-            current_app.logger.info(type(trainRes_str))
-            if is_json(trainRes_str):
-                # trainResJson = json.loads(trainRes_str)
-                '''更新mongo数据库assigned-model表'''
-                task = Task.objects.filter(modelID=modelID).first()
-                if task:
-                    task.state = 'FINISHED'
-                    task.save()
-        except:
-            task = Task.objects.filter(modelID=modelID).first()
-            if task:
-                task.state = 'ERROR'
-                task.save()
-            all_task = AllTask.objects.filter(modelID=modelID, status=1).first()
-            if all_task:
-                all_task_copy = AllTask()
-                current_app.logger.info("+++++++++++++++++++++++++++++++++++++++++")
-                current_app.logger.info(all_task.__dir__())
-                current_app.logger.info(type(all_task))
-                all_task_copy.copy_attrs(all_task)
-                current_app.logger.info(all_task_copy.modelID)
-                all_task.status = 0
-                all_task_copy.state = 'ERROR'
-                all_task_copy.save()
 
 
 @web.route('/api/test', methods=['POST', 'GET'])
@@ -778,12 +687,13 @@ def get_test_return(task_id):
     return response
 
 
-'''获取Celery异步accept的结果'''
-
-
 @web.route('/api/task/async_accept_result', methods=['GET', 'POST', 'OPTIONS'])
 @login_required
 def async_accept_result():
+    """
+    获取Celery异步accept的结果
+    :return:
+    """
     modelID = request.args.get('modelID')
     task_id = redis_client.get(modelID)
     current_app.logger.info(task_id)
@@ -859,12 +769,13 @@ def async_accept_result():
         #     raise APIError('接收任务失败'+acceptRes_str)
 
 
-'''获取Celery异步train的结果'''
-
-
 @web.route('/api/task/async_train_result', methods=['GET', 'POST', 'OPTIONS'])
 @login_required
 def async_train_result():
+    """
+    获取Celery异步train的结果
+    :return:
+    """
     modelID = request.args.get('modelID')
     task_id = redis_client.get(modelID)
     current_app.logger.info(task_id)

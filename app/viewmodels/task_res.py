@@ -72,7 +72,9 @@ def detail_data(task):
         "modelName": task['modelName'],
         "state": task['state'],
         "timeLimit": task['timeLimit'],
-        "taskName": task['taskName']
+        "taskName": task['taskName'],
+        "labelName": task['labelName'],
+        "featureNames": task['featureNames']
     }
     return dic
 

@@ -1,9 +1,0 @@
-Scheduler started
-Looking for jobs to run
-No jobs; waiting until a job is added
-【request before】
-Starting new HTTP connection (1): 10.99.12.103:8010
-http://10.99.12.103:8010 "POST /queryModel HTTP/1.1" 200 None
-【request after】
-Starting new HTTP connection (1): 10.99.12.103:8010
-http://10.99.12.103:8010 "POST /queryModel HTTP/1.1" 200 None

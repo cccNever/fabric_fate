@@ -11,10 +11,11 @@ class FeatureScale(ConfBase):
         scale_names : 要进行归一化的列
     """
     method = "standard_scale"
-    mode = "normal"
-    featUpper = []
-    featLower = []
+    mode = "cap"
+    featUpper = 1
+    featLower = 0
     scaleNames = "None"
+    scaleColIndexes = []
 
     def __init__(self, module):
         self.module = module
@@ -22,7 +23,7 @@ class FeatureScale(ConfBase):
     def generate_conf(self):
         conf = json.loads(open("./app/base_json/" + self.module + "/conf.json", encoding="utf-8").read())
         conf["method"] = self.method
-        conf["mode"] = self.method
+        conf["mode"] = self.mode
         if self.scaleNames != "None":
             conf["scale_names"] = self.scaleNames
         conf["feat_upper"] = self.featUpper
